@@ -2,6 +2,7 @@
   (:require [clojure.string :as str]
             [clojure.java.browse :as browse]))
 
+(def group-name "Kindle")
 (def clippings-path "/Users/jirkapenzes/dev/projects/kindle-to-ulysses/Clippings.txt")
 (def clippings (slurp clippings-path))
 
@@ -36,7 +37,6 @@
         (recur (rest clippings)
                (update-in result [(:book clip)] conj clip))))))
 
-
 (defn apply-format-clip [clip]
   (format "\n**Location %s, page %s**\n%s\n----" (:location clip) (:page clip) (:clip clip)))
 
@@ -46,14 +46,13 @@
 (defn format-clippings [clippings]
   (for [book (keys clippings)]
     (let [formatted (format-book-clippings book (get clippings book))]
-      (browse/browse-url (str "ulysses://x-callback-url/new-sheet?text=" formatted "&group=Kindle")))))
-
+      (browse/browse-url (str "ulysses://x-callback-url/new-sheet?text=" formatted "&group=" group-name)))))
 
 (defn create-ulysses-group [group-name]
   (browse/browse-url (str "ulysses://x-callback-url/new-group?name=" group-name)))
 
 (defn send-to-ulysses []
-  (do (create-ulysses-group "Kindle")
+  (do (create-ulysses-group group-name)
       (-> (parse-clippings clippings)
           (format-clippings))))
 
