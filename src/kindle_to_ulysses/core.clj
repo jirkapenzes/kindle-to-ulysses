@@ -4,8 +4,8 @@
 
 (def group-name "Kindle")
 (def clippings-path "/Users/jirkapenzes/dev/projects/kindle-to-ulysses/Clippings.txt")
-(def clippings (slurp clippings-path))
 
+(defn load-clippings [path] (slurp path))
 (defn extract-type [info-line] (get (re-find #"(?:- Your )(Highlight|Bookmark|Note)" info-line) 1))
 (defn extract-page [info-line] (get (re-find #"(?:on page )([\d]*)" info-line) 1))
 (defn extract-location [info-line] (get (re-find #"(?:Location )([\d]*-[\d]*|[\d]*)" info-line) 1))
@@ -38,7 +38,8 @@
                (update-in result [(:book clip)] conj clip))))))
 
 (defn apply-format-clip [clip]
-  (format "\n**Location %s, page %s**\n%s\n----" (:location clip) (:page clip) (:clip clip)))
+  (format "\n**Location %s, page %s**\n%s\n----"
+          (:location clip) (:page clip) (:clip clip)))
 
 (defn format-book-clippings [book clippings]
   (format "#%s\n%s" book (reduce str (map apply-format-clip clippings))))
@@ -51,9 +52,10 @@
 (defn create-ulysses-group [group-name]
   (browse/browse-url (str "ulysses://x-callback-url/new-group?name=" group-name)))
 
-(defn send-to-ulysses []
+(defn send-to-ulysses [path]
   (do (create-ulysses-group group-name)
-      (-> (parse-clippings clippings)
+      (-> (load-clippings path)
+          (parse-clippings)
           (format-clippings))))
 
-(send-to-ulysses)
+(send-to-ulysses clippings-path)
